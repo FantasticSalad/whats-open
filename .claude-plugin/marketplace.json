@@ -1,0 +1,15 @@
+{
+  "name": "whats-open",
+  "owner": {
+    "name": "FantasticSalad"
+  },
+  "description": "What's Open: one read-only report of unfinished git work across all your repos.",
+  "plugins": [
+    {
+      "name": "whats-open",
+      "source": "./",
+      "description": "Ask \"what's open?\" and get one list of everything not committed, not pushed, not merged or left to tidy, across all your repos.",
+      "category": "productivity"
+    }
+  ]
+}

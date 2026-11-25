@@ -1,0 +1,20 @@
+{
+  "name": "whats-open",
+  "displayName": "What's Open",
+  "version": "0.1.0",
+  "description": "One read-only report of unfinished git work across all your repos: uncommitted edits, commits no remote has, unmerged branches, paused work and tidy-up. Claude Code plugin.",
+  "author": {
+    "name": "FantasticSalad"
+  },
+  "homepage": "https://github.com/FantasticSalad/whats-open",
+  "repository": "https://github.com/FantasticSalad/whats-open",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "branches",
+    "worktrees",
+    "backup",
+    "multi-repo",
+    "report"
+  ]
+}

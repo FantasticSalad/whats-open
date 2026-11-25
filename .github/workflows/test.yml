@@ -1,0 +1,54 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # A pull request from a branch of this repository was already tested by its push.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        # Hosted macOS and Windows runners cost several times a Linux one in a private
+        # repository, so there they run on the default branch only, and other branches run
+        # Linux. A public repository runs all three every time.
+        os: ${{ fromJSON((github.ref_name == github.event.repository.default_branch || !github.event.repository.private) && '["ubuntu-latest", "macos-latest", "windows-latest"]' || '["ubuntu-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: versions
+        shell: bash
+        run: |
+          git --version
+          (command -v python3 >/dev/null && python3 --version) || python --version
+      - name: pytest, pinned, in a virtual environment
+        shell: bash
+        run: |
+          py=$(command -v python3 || command -v python)
+          "$py" -m venv .venv
+          if [ -x .venv/bin/python ]; then vpy=.venv/bin/python; else vpy=.venv/Scripts/python.exe; fi
+          "$vpy" -m pip install -q --disable-pip-version-check "pytest==8.3.5"
+      - name: tests
+        shell: bash
+        run: bash tests/run-all.sh
+      # Windows profile folders often have a space or an apostrophe. Run the suite again from
+      # such a folder, with the test repos, configs and worktrees built under one too, and the
+      # same virtual environment. Windows only, to save minutes.
+      - name: tests from a path with a space and an apostrophe
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          odd="$RUNNER_TEMP/o'brien dir"
+          mkdir -p "$odd"
+          cp -R . "$odd/wo"
+          rm -rf "$odd/wo/.venv"
+          cd "$odd/wo"
+          # pytest splits PYTEST_ADDOPTS like a shell, so the path goes in double quotes there,
+          # in Windows form: Git Bash doesn't convert a path with an apostrophe for Python.
+          PYTEST_ADDOPTS="--basetemp=\"$(cygpath -m "$odd")/pytest tmp\"" \
+            WHATS_OPEN_TEST_PYTHON="$GITHUB_WORKSPACE/.venv/Scripts/python.exe" bash tests/run-all.sh
